@@ -1,0 +1,36 @@
+const labels: Record<string, string> = {
+  ACTIVE: "ใช้งาน",
+  INACTIVE: "ไม่ใช้งาน",
+  BLOCKED: "ระงับ",
+  DRAFT: "ฉบับร่าง",
+  PENDING: "รอดำเนินการ",
+  CONFIRMED: "ยืนยันแล้ว",
+  RELEASED: "ปล่อยแล้ว",
+  EXPIRED: "หมดอายุ",
+  INDIVIDUAL: "บุคคล",
+  CORPORATE: "บริษัท",
+  HEAD_OFFICE: "สำนักงานใหญ่",
+  BRANCH: "สาขา",
+  PENDING_PAYMENT: "รอชำระเงิน",
+  PAID: "ชำระแล้ว",
+  PROCESSING: "กำลังดำเนินการ",
+  COMPLETED: "เสร็จสมบูรณ์",
+  CANCELLATION_PENDING: "รอยกเลิก",
+  CANCELLED: "ยกเลิกแล้ว",
+  REVIEW_REQUIRED: "ต้องตรวจสอบ",
+  CHECKOUT_OPEN: "รอลูกค้าชำระ",
+  AUTHORIZED: "อนุมัติวงเงินแล้ว",
+  CAPTURE_PENDING: "รอตัดยอด",
+  CAPTURED: "ตัดยอดแล้ว",
+  FAILED: "ไม่สำเร็จ",
+  VOID_PENDING: "รอ Void",
+  VOIDED: "Void แล้ว",
+  SUCCEEDED: "สำเร็จ",
+  NONE: "ไม่มีส่วนลด",
+  PERCENT: "เปอร์เซ็นต์",
+  FIXED: "จำนวนเงิน",
+};
+
+export function enumLabel(value: string) {
+  return labels[value] ?? value;
+}
