@@ -5,6 +5,7 @@ import { ArrowLeft, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
+import { ThaiAddressFields } from "@/components/forms/thai-address-fields";
 import { useCart } from "@/components/storefront/cart-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -59,6 +60,8 @@ export default function CartPage() {
 
   const addressReady =
     address.line1 &&
+    address.subdistrict &&
+    address.district &&
     address.province &&
     address.postalCode &&
     address.countryCode.length === 2;
@@ -182,41 +185,13 @@ export default function CartPage() {
                   setAddress({ ...address, line2: event.target.value })
                 }
               />
-              <div className="grid grid-cols-2 gap-3">
-                <Input
-                  placeholder="แขวง/ตำบล"
-                  value={address.subdistrict}
-                  onChange={(event) =>
-                    setAddress({
-                      ...address,
-                      subdistrict: event.target.value,
-                    })
-                  }
-                />
-                <Input
-                  placeholder="เขต/อำเภอ"
-                  value={address.district}
-                  onChange={(event) =>
-                    setAddress({ ...address, district: event.target.value })
-                  }
-                />
-              </div>
-              <div className="grid grid-cols-[1fr_130px] gap-3">
-                <Input
-                  placeholder="จังหวัด"
-                  value={address.province}
-                  onChange={(event) =>
-                    setAddress({ ...address, province: event.target.value })
-                  }
-                />
-                <Input
-                  placeholder="รหัสไปรษณีย์"
-                  value={address.postalCode}
-                  onChange={(event) =>
-                    setAddress({ ...address, postalCode: event.target.value })
-                  }
-                />
-              </div>
+              <ThaiAddressFields
+                basePath="/api/store/locations"
+                value={address}
+                onChange={(location) =>
+                  setAddress({ ...address, ...location })
+                }
+              />
             </CardContent>
           </Card>
 

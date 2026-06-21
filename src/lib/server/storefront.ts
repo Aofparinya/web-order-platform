@@ -15,6 +15,10 @@ import type {
   ProductImage,
   Sku,
   Stock,
+  ThaiDistrict,
+  ThaiLocation,
+  ThaiProvince,
+  ThaiSubdistrict,
   Warehouse,
 } from "@/types/api";
 import type {
@@ -221,6 +225,17 @@ export async function storefrontOrders(user: AuthUser) {
   return request<Page<Order>>(
     `orders?customerId=${encodeURIComponent(user.id)}&page=1&pageSize=50`,
   );
+}
+
+export async function storefrontLocations(
+  level: string,
+  searchParams: URLSearchParams,
+): Promise<ThaiProvince[] | ThaiDistrict[] | ThaiSubdistrict[] | ThaiLocation[]> {
+  if (!["provinces", "districts", "subdistricts", "search"].includes(level)) {
+    throw new StorefrontError(404, "ไม่พบประเภทข้อมูลที่อยู่");
+  }
+  const query = searchParams.toString();
+  return request(`locations/${level}${query ? `?${query}` : ""}`);
 }
 
 export async function storefrontPaymentCheckout(

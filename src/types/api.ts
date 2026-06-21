@@ -66,6 +66,42 @@ export interface CustomerAddress {
   isDefault: boolean;
 }
 
+export interface ThaiProvince {
+  code: number;
+  nameTh: string;
+  nameEn: string;
+  regionCode: number;
+}
+
+export interface ThaiDistrict {
+  code: number;
+  provinceCode: number;
+  nameTh: string;
+  nameEn: string;
+}
+
+export interface ThaiSubdistrict {
+  code: number;
+  districtCode: number;
+  provinceCode: number;
+  nameTh: string;
+  nameEn: string;
+  postalCode: string;
+}
+
+export interface ThaiLocation {
+  provinceCode: number;
+  provinceNameTh: string;
+  provinceNameEn: string;
+  districtCode: number;
+  districtNameTh: string;
+  districtNameEn: string;
+  subdistrictCode: number;
+  subdistrictNameTh: string;
+  subdistrictNameEn: string;
+  postalCode: string;
+}
+
 export interface CustomerContact {
   id: string;
   customerId: string;

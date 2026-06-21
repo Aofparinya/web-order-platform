@@ -6,6 +6,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { ThaiAddressFields } from "@/components/forms/thai-address-fields";
 import { useSession } from "@/components/providers";
 import { LoadingState } from "@/components/shared/loading";
 import { PageHeader } from "@/components/shared/page-header";
@@ -34,13 +35,13 @@ export default function CustomerDetailPage() {
   const addresses = useQuery({ queryKey: ["customers", id, "addresses"], queryFn: () => apiFetch<CustomerAddress[]>(`customers/${id}/addresses`) });
   const contacts = useQuery({ queryKey: ["customers", id, "contacts"], queryFn: () => apiFetch<CustomerContact[]>(`customers/${id}/contacts`) });
   const taxProfiles = useQuery({ queryKey: ["customers", id, "tax-profiles"], queryFn: () => apiFetch<TaxProfile[]>(`customers/${id}/tax-profiles`) });
-  const [address, setAddress] = useState({ addressType: "BILLING", line1: "", province: "", postalCode: "", countryCode: "TH", isDefault: false });
+  const [address, setAddress] = useState({ addressType: "BILLING", line1: "", subdistrict: "", district: "", province: "", postalCode: "", countryCode: "TH", isDefault: false });
   const [contact, setContact] = useState({ firstName: "", lastName: "", position: "", email: "", phone: "", isPrimary: false });
-  const [tax, setTax] = useState({ taxId: "", branchType: "HEAD_OFFICE", branchCode: "00000", branchName: "", addressLine1: "", province: "", postalCode: "", countryCode: "TH" });
+  const [tax, setTax] = useState({ taxId: "", branchType: "HEAD_OFFICE", branchCode: "00000", branchName: "", addressLine1: "", subdistrict: "", district: "", province: "", postalCode: "", countryCode: "TH" });
   const refresh = (key: string) => queryClient.invalidateQueries({ queryKey: ["customers", id, key] });
   const createAddress = useMutation({
     mutationFn: () => apiFetch<CustomerAddress>(`customers/${id}/addresses`, { method: "POST", body: JSON.stringify(address) }),
-    onSuccess: () => { toast.success("เพิ่มที่อยู่แล้ว"); refresh("addresses"); setAddress({ ...address, line1: "", province: "", postalCode: "" }); },
+    onSuccess: () => { toast.success("เพิ่มที่อยู่แล้ว"); refresh("addresses"); setAddress({ ...address, line1: "", subdistrict: "", district: "", province: "", postalCode: "" }); },
     onError: (error) => toast.error(error.message),
   });
   const createContact = useMutation({
@@ -50,7 +51,7 @@ export default function CustomerDetailPage() {
   });
   const createTax = useMutation({
     mutationFn: () => apiFetch<TaxProfile>(`customers/${id}/tax-profiles`, { method: "POST", body: JSON.stringify({ ...tax, branchName: tax.branchName || undefined }) }),
-    onSuccess: () => { toast.success("เพิ่มข้อมูลภาษีแล้ว"); refresh("tax-profiles"); setTax({ ...tax, taxId: "", branchName: "", addressLine1: "", province: "", postalCode: "" }); },
+    onSuccess: () => { toast.success("เพิ่มข้อมูลภาษีแล้ว"); refresh("tax-profiles"); setTax({ ...tax, taxId: "", branchName: "", addressLine1: "", subdistrict: "", district: "", province: "", postalCode: "" }); },
     onError: (error) => toast.error(error.message),
   });
   async function remove(path: string, key: string) {
@@ -75,8 +76,7 @@ export default function CustomerDetailPage() {
           {writable && <InlineForm title="เพิ่มที่อยู่" onSubmit={() => createAddress.mutate()}>
             <Select value={address.addressType} onChange={(event) => setAddress({ ...address, addressType: event.target.value })}><option>BILLING</option><option>SHIPPING</option><option>CONTACT</option></Select>
             <Input placeholder="ที่อยู่" value={address.line1} onChange={(event) => setAddress({ ...address, line1: event.target.value })} />
-            <Input placeholder="จังหวัด" value={address.province} onChange={(event) => setAddress({ ...address, province: event.target.value })} />
-            <Input placeholder="รหัสไปรษณีย์" value={address.postalCode} onChange={(event) => setAddress({ ...address, postalCode: event.target.value })} />
+            <ThaiAddressFields value={address} onChange={(location) => setAddress({ ...address, ...location })} />
           </InlineForm>}
           <ItemGrid>{addresses.data?.map((item) => <Item key={item.id} title={`${item.addressType}${item.isDefault ? " · Default" : ""}`} detail={`${item.line1}, ${item.province} ${item.postalCode}`} onDelete={writable ? () => remove(`customers/${id}/addresses/${item.id}`, "addresses") : undefined} />)}</ItemGrid>
         </Tabs.Content>
@@ -94,8 +94,7 @@ export default function CustomerDetailPage() {
             <Input placeholder="เลขประจำตัวผู้เสียภาษี" value={tax.taxId} onChange={(event) => setTax({ ...tax, taxId: event.target.value })} />
             <Select value={tax.branchType} onChange={(event) => setTax({ ...tax, branchType: event.target.value })}><option>HEAD_OFFICE</option><option>BRANCH</option></Select>
             <Input placeholder="ที่อยู่ออกใบกำกับภาษี" value={tax.addressLine1} onChange={(event) => setTax({ ...tax, addressLine1: event.target.value })} />
-            <Input placeholder="จังหวัด" value={tax.province} onChange={(event) => setTax({ ...tax, province: event.target.value })} />
-            <Input placeholder="รหัสไปรษณีย์" value={tax.postalCode} onChange={(event) => setTax({ ...tax, postalCode: event.target.value })} />
+            <ThaiAddressFields value={tax} onChange={(location) => setTax({ ...tax, ...location })} />
           </InlineForm>}
           <ItemGrid>{taxProfiles.data?.map((item) => <Item key={item.id} title={`${item.taxId} · ${item.branchType}`} detail={`${item.addressLine1}, ${item.province} ${item.postalCode}`} onDelete={writable ? () => remove(`customers/${id}/tax-profiles/${item.id}`, "tax-profiles") : undefined} />)}</ItemGrid>
         </Tabs.Content>
