@@ -61,7 +61,7 @@ export default function OrderDetailPage() {
           {writable && value.status === "DRAFT" && <Button onClick={() => runOrderAction("submit")}>Submit และจอง Stock</Button>}
           {writable && ["DRAFT", "PENDING_PAYMENT"].includes(value.status) && <Button variant="outline" onClick={() => runOrderAction("cancel")}>ยกเลิก</Button>}
           {paymentsWritable && value.status === "PENDING_PAYMENT" && !activePayment && <Button onClick={createPayment}>สร้าง Stripe Checkout</Button>}
-          {activePayment?.checkoutUrl && ["CHECKOUT_OPEN", "AUTHORIZED"].includes(activePayment.status) && <Button asChild variant="outline"><a href={activePayment.checkoutUrl} target="_blank" rel="noreferrer"><ExternalLink /> เปิด Checkout</a></Button>}
+          {activePayment?.checkoutUrl && ["CHECKOUT_OPEN", "AUTHORIZED"].includes(activePayment.status) && <Button asChild variant="outline"><Link href={`/payments/${activePayment.id}`}><ExternalLink /> ดูการชำระเงิน</Link></Button>}
           {paymentsWritable && activePayment?.status === "AUTHORIZED" && <Button onClick={() => paymentAction("capture")}>Capture Payment</Button>}
           {paymentsWritable && ["AUTHORIZED", "CHECKOUT_OPEN"].includes(activePayment?.status ?? "") && <Button variant="outline" onClick={() => paymentAction("void")}>Void</Button>}
           {writable && value.status === "PAID" && <Button onClick={() => runOrderAction("process")}>เริ่มดำเนินการ</Button>}

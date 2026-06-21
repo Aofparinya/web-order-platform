@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { can, isAdmin, permissions } from "@/lib/permissions";
+import { can, homeRoute, isAdmin, permissions } from "@/lib/permissions";
 
 const user = {
   id: "1",
@@ -23,5 +23,10 @@ describe("permission mapping", () => {
 
   it("denies normal users", () => {
     expect(can(user, permissions.customersRead)).toBe(false);
+  });
+
+  it("routes admins to back office and users to storefront", () => {
+    expect(homeRoute({ ...user, roles: ["ADMIN"] })).toBe("/dashboard");
+    expect(homeRoute(user)).toBe("/store");
   });
 });

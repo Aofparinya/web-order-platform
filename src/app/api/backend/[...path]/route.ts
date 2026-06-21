@@ -34,7 +34,10 @@ async function forward(
   } catch (error) {
     if (error instanceof Error && error.message.startsWith("INVALID_")) {
       return NextResponse.json(
-        { message: "คำขอไม่ผ่านการตรวจสอบความปลอดภัย" },
+        {
+          message: "คำขอไม่ผ่านการตรวจสอบความปลอดภัย",
+          code: error.message,
+        },
         { status: 403 },
       );
     }

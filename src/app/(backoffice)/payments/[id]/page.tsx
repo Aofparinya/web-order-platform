@@ -7,7 +7,6 @@ import { LoadingState } from "@/components/shared/loading";
 import { PageHeader } from "@/components/shared/page-header";
 import { PermissionGate } from "@/components/shared/permission-gate";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { apiFetch } from "@/lib/api-client";
 import { permissions } from "@/lib/permissions";
@@ -26,7 +25,7 @@ export default function PaymentPage() {
         <Row label="ยอดชำระ" value={formatCurrency(payment.data.amount, payment.data.currency)} />
         <Row label="PaymentIntent" value={payment.data.providerPaymentIntentId ?? "-"} />
         <Row label="Checkout หมดอายุ" value={formatDateTime(payment.data.checkoutExpiresAt)} />
-        {payment.data.checkoutUrl && <Button asChild><a href={payment.data.checkoutUrl} target="_blank" rel="noreferrer">เปิด Stripe Checkout</a></Button>}
+        {payment.data.checkoutUrl && <p className="text-sm text-slate-500">ลูกค้าชำระเงินผ่านหน้า Checkout ของ Storefront</p>}
       </CardContent></Card>
       <Card><CardContent className="p-6"><h2 className="mb-4 font-bold">Refunds</h2><div className="space-y-3">{refunds.data?.map((refund) => <Link key={refund.id} href={`/refunds/${refund.id}`} className="flex justify-between rounded-lg border p-3"><span>{refund.refundNumber}</span><span>{formatCurrency(refund.amount, refund.currency)}</span></Link>)}{!refunds.data?.length && <p className="text-sm text-slate-500">ยังไม่มี Refund</p>}</div></CardContent></Card>
     </div>

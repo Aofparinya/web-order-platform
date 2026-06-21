@@ -9,6 +9,7 @@ import { createContext, useContext, useState } from "react";
 import { Toaster } from "sonner";
 import { apiFetch } from "@/lib/api-client";
 import type { AuthUser } from "@/types/api";
+import { CartProvider } from "@/components/storefront/cart-provider";
 
 const SessionContext = createContext<{
   user: AuthUser | null;
@@ -26,7 +27,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
   return (
     <QueryClientProvider client={queryClient}>
-      <SessionProvider>{children}</SessionProvider>
+      <SessionProvider>
+        <CartProvider>{children}</CartProvider>
+      </SessionProvider>
       <Toaster richColors position="top-right" />
     </QueryClientProvider>
   );

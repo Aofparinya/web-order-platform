@@ -5,14 +5,14 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div className="text-xl font-bold">Order Platform</div>
         <div className="max-w-xl">
           <p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-blue-400">
-            Enterprise Back Office
+            Back Office + Storefront
           </p>
           <h1 className="text-5xl font-bold leading-tight">
-            จัดการลูกค้า สินค้า และคลังสินค้าในที่เดียว
+            ระบบเดียวสำหรับผู้ดูแลและผู้เลือกซื้อสินค้า
           </h1>
           <p className="mt-6 text-lg leading-8 text-slate-300">
-            ระบบหลังบ้านที่เชื่อมต่อ microservices ผ่าน API Gateway
-            พร้อมควบคุมสิทธิ์ตามบทบาท
+            ADMIN จัดการสินค้า คลัง และคำสั่งซื้อผ่าน Back Office ส่วน USER
+            เลือกสินค้าที่พร้อมขายจากคลังผ่าน Storefront
           </p>
         </div>
         <p className="text-sm text-slate-500">Order Platform · Portfolio Project</p>

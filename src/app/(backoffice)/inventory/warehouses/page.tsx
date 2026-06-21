@@ -35,7 +35,7 @@ export default function WarehousesPage() {
     { header: "รหัสคลัง", accessorKey: "code" },
     { header: "ชื่อคลัง", accessorKey: "name" },
     { header: "สถานะ", cell: ({ row }) => <Badge value={row.original.status} /> },
-    { header: "", cell: ({ row }) => writable ? <Button variant="ghost" size="icon" onClick={() => remove(row.original.id)}><Trash2 className="size-4 text-red-600" /></Button> : null },
+    { id: "actions", header: "", cell: ({ row }) => writable ? <Button variant="ghost" size="icon" onClick={() => remove(row.original.id)}><Trash2 className="size-4 text-red-600" /></Button> : null },
   ];
   return <PermissionGate permission={permissions.inventoryRead}>
     <PageHeader title="คลังสินค้า" description="กำหนดรหัสคลังและสถานะการใช้งาน" />

@@ -247,6 +247,19 @@ export interface OrderPayment {
   createdAt: string;
 }
 
+export interface OrderPaymentCheckout {
+  paymentId: string;
+  orderId: string;
+  paymentNumber: string;
+  status: OrderPayment["status"];
+  amount: number;
+  currency: string;
+  mode: "stripe" | "retry_required";
+  publishableKey?: string;
+  clientSecret?: string;
+  expiresAt?: string;
+}
+
 export interface Invoice {
   id: string;
   orderId: string;

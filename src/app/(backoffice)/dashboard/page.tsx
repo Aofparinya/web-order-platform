@@ -4,11 +4,13 @@ import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
   Boxes,
+  FileBarChart,
   Package,
   Plus,
   ShoppingCart,
   Users,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "@/components/providers";
 import { LoadingState } from "@/components/shared/loading";
@@ -18,7 +20,22 @@ import { Card, CardContent } from "@/components/ui/card";
 import { apiFetch } from "@/lib/api-client";
 import { can, permissions } from "@/lib/permissions";
 import { formatNumber } from "@/lib/utils";
-import type { Customer, Order, Page, Product, Reservation, Stock } from "@/types/api";
+import type {
+  Customer,
+  Order,
+  Page,
+  Product,
+  Reservation,
+  Stock,
+} from "@/types/api";
+
+interface ReportDashboard {
+  netSales: number;
+  order_count: number;
+  average_order_value: number;
+  paymentTotal: number;
+  refundTotal: number;
+}
 
 export default function DashboardPage() {
   const { user } = useSession();
@@ -26,6 +43,7 @@ export default function DashboardPage() {
   const catalogAccess = can(user, permissions.catalogRead);
   const inventoryAccess = can(user, permissions.inventoryRead);
   const orderAccess = can(user, permissions.ordersRead);
+  const reportAccess = can(user, permissions.reportsRead);
   const customers = useQuery({
     queryKey: ["dashboard", "customers"],
     queryFn: () => apiFetch<Page<Customer>>("customers?page=1&pageSize=5"),
@@ -52,9 +70,13 @@ export default function DashboardPage() {
   });
   const orders = useQuery({
     queryKey: ["dashboard", "orders"],
-    queryFn: () =>
-      apiFetch<Page<Order>>("orders?page=1&pageSize=5&status=PENDING_PAYMENT"),
+    queryFn: () => apiFetch<Page<Order>>("orders?page=1&pageSize=5"),
     enabled: orderAccess,
+  });
+  const report = useQuery({
+    queryKey: ["dashboard", "reports"],
+    queryFn: () => apiFetch<ReportDashboard>("reports/dashboard"),
+    enabled: reportAccess,
   });
 
   if (!user) return <LoadingState />;
@@ -62,13 +84,24 @@ export default function DashboardPage() {
     <>
       <PageHeader
         title={`สวัสดี ${user.firstName}`}
-        description="ภาพรวมข้อมูลที่คุณมีสิทธิ์เข้าถึงใน Order Platform"
+        description="ภาพรวมข้อมูลตามสิทธิ์ที่คุณได้รับใน Order Platform"
       />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {reportAccess && (
+          <Metric
+            label="ยอดขายสุทธิ"
+            value={new Intl.NumberFormat("th-TH", {
+              style: "currency",
+              currency: "THB",
+            }).format(report.data?.netSales ?? 0)}
+            icon={FileBarChart}
+            color="emerald"
+          />
+        )}
         {customerAccess && (
           <Metric
             label="ลูกค้าทั้งหมด"
-            value={customers.data?.pagination.total}
+            value={formatNumber(customers.data?.pagination.total ?? 0)}
             icon={Users}
             color="blue"
           />
@@ -76,7 +109,7 @@ export default function DashboardPage() {
         {catalogAccess && (
           <Metric
             label="สินค้าทั้งหมด"
-            value={products.data?.pagination.total}
+            value={formatNumber(products.data?.pagination.total ?? 0)}
             icon={Package}
             color="indigo"
           />
@@ -84,15 +117,15 @@ export default function DashboardPage() {
         {inventoryAccess && (
           <Metric
             label="รายการสต็อกต่ำ"
-            value={lowStock.data?.pagination.total}
+            value={formatNumber(lowStock.data?.pagination.total ?? 0)}
             icon={AlertTriangle}
             color="amber"
           />
         )}
         {orderAccess && (
           <Metric
-            label="คำสั่งซื้อรอชำระ"
-            value={orders.data?.pagination.total}
+            label="คำสั่งซื้อทั้งหมด"
+            value={formatNumber(orders.data?.pagination.total ?? 0)}
             icon={ShoppingCart}
             color="blue"
           />
@@ -100,7 +133,7 @@ export default function DashboardPage() {
         {inventoryAccess && (
           <Metric
             label="การจองที่รอดำเนินการ"
-            value={reservations.data?.pagination.total}
+            value={formatNumber(reservations.data?.pagination.total ?? 0)}
             icon={Boxes}
             color="emerald"
           />
@@ -109,8 +142,25 @@ export default function DashboardPage() {
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.4fr_1fr]">
         <Card>
           <CardContent className="p-6">
-            <h2 className="font-bold text-slate-900">รายการล่าสุด</h2>
+            <h2 className="font-bold">รายการล่าสุด</h2>
             <div className="mt-4 space-y-3">
+              {orders.data?.data.map((order) => (
+                <Link
+                  key={order.id}
+                  href={`/orders/${order.id}`}
+                  className="flex items-center justify-between rounded-lg border p-3 hover:bg-slate-50"
+                >
+                  <span>
+                    <strong className="block text-sm">
+                      {order.orderNumber}
+                    </strong>
+                    <small className="text-slate-500">{order.status}</small>
+                  </span>
+                  <span className="text-sm">
+                    {order.currency} {order.totalAmount}
+                  </span>
+                </Link>
+              ))}
               {customers.data?.data.map((customer) => (
                 <Link
                   key={customer.id}
@@ -122,48 +172,19 @@ export default function DashboardPage() {
                       {customer.companyName ??
                         `${customer.firstName ?? ""} ${customer.lastName ?? ""}`}
                     </strong>
-                    <small className="text-slate-500">{customer.customerNo}</small>
+                    <small className="text-slate-500">
+                      {customer.customerNo}
+                    </small>
                   </span>
-                  <span className="text-xs text-slate-500">{customer.status}</span>
+                  <span className="text-xs">{customer.status}</span>
                 </Link>
               ))}
-              {products.data?.data.map((product) => (
-                <Link
-                  key={product.id}
-                  href={`/catalog/products/${product.id}`}
-                  className="flex items-center justify-between rounded-lg border p-3 hover:bg-slate-50"
-                >
-                  <span>
-                    <strong className="block text-sm">{product.name}</strong>
-                    <small className="text-slate-500">{product.productNo}</small>
-                  </span>
-                  <span className="text-xs text-slate-500">{product.status}</span>
-                </Link>
-              ))}
-              {orders.data?.data.map((order) => (
-                <Link
-                  key={order.id}
-                  href={`/orders/${order.id}`}
-                  className="flex items-center justify-between rounded-lg border p-3 hover:bg-slate-50"
-                >
-                  <span>
-                    <strong className="block text-sm">{order.orderNumber}</strong>
-                    <small className="text-slate-500">{order.status}</small>
-                  </span>
-                  <span className="text-xs text-slate-500">{order.currency} {order.totalAmount}</span>
-                </Link>
-              ))}
-              {!customers.data?.data.length && !products.data?.data.length && (
-                <p className="py-8 text-center text-sm text-slate-500">
-                  ยังไม่มีข้อมูลล่าสุด
-                </p>
-              )}
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
-            <h2 className="font-bold text-slate-900">เมนูลัด</h2>
+            <h2 className="font-bold">เมนูลัด</h2>
             <div className="mt-4 grid gap-3">
               {can(user, permissions.customersWrite) && (
                 <Button asChild variant="outline" className="justify-start">
@@ -193,9 +214,11 @@ export default function DashboardPage() {
                   </Link>
                 </Button>
               )}
-              <Button asChild variant="outline" className="justify-start">
-                <Link href="/profile">ดูข้อมูลบัญชี</Link>
-              </Button>
+              {reportAccess && (
+                <Button asChild variant="outline" className="justify-start">
+                  <Link href="/reports">ดูรายงาน</Link>
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -204,13 +227,12 @@ export default function DashboardPage() {
   );
 }
 
-const metricColors = {
+const colors = {
   blue: "bg-blue-50 text-blue-600",
   indigo: "bg-indigo-50 text-indigo-600",
   amber: "bg-amber-50 text-amber-600",
   emerald: "bg-emerald-50 text-emerald-600",
 };
-
 function Metric({
   label,
   value,
@@ -218,21 +240,21 @@ function Metric({
   color,
 }: {
   label: string;
-  value?: number;
-  icon: typeof Users;
-  color: keyof typeof metricColors;
+  value: string;
+  icon: LucideIcon;
+  color: keyof typeof colors;
 }) {
   return (
     <Card>
       <CardContent className="flex items-center gap-4 p-5">
-        <div className={`grid size-12 place-items-center rounded-xl ${metricColors[color]}`}>
+        <div
+          className={`grid size-12 place-items-center rounded-xl ${colors[color]}`}
+        >
           <Icon className="size-6" />
         </div>
         <div>
           <p className="text-sm text-slate-500">{label}</p>
-          <strong className="text-2xl text-slate-950">
-            {value === undefined ? "—" : formatNumber(value)}
-          </strong>
+          <strong className="text-2xl text-slate-950">{value}</strong>
         </div>
       </CardContent>
     </Card>

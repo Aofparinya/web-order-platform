@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { loginSchema, registerSchema } from "@/lib/schemas/auth";
+import { homeRoute } from "@/lib/permissions";
+import type { AuthUser } from "@/types/api";
 
 type LoginValues = z.infer<typeof loginSchema>;
 type RegisterValues = z.infer<typeof registerSchema>;
@@ -39,8 +41,9 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
       toast.error(error.message);
       return;
     }
+    const result = (await response.json()) as { user: AuthUser };
     toast.success(mode === "login" ? "เข้าสู่ระบบสำเร็จ" : "สร้างบัญชีสำเร็จ");
-    router.replace(searchParams.get("next") ?? "/dashboard");
+    router.replace(searchParams.get("next") ?? homeRoute(result.user));
     router.refresh();
   }
 
@@ -58,8 +61,8 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
           </h1>
           <p className="mt-2 text-sm text-slate-500">
             {mode === "login"
-              ? "ใช้บัญชีของคุณเพื่อเข้าสู่ระบบหลังบ้าน"
-              : "บัญชีใหม่จะได้รับบทบาท USER และเข้าถึงข้อมูลส่วนตัว"}
+              ? "ADMIN จะเข้าสู่ Back Office ส่วน USER จะเข้าสู่หน้าร้าน"
+              : "บัญชี USER สามารถเลือกสินค้าในคลัง สร้างคำสั่งซื้อ และดูข้อมูลส่วนตัว"}
           </p>
         </div>
         <form className="space-y-4" onSubmit={form.handleSubmit(submit)}>
