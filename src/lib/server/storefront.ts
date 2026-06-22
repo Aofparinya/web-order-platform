@@ -133,17 +133,20 @@ export async function storefrontCatalog(
   );
   const selectedWarehouseId =
     warehouses.find((warehouse) => warehouse.id === requestedWarehouseId)?.id ??
-    warehouses[0]?.id ??
     "";
-  if (!selectedWarehouseId) {
+  if (!warehouses.length) {
     return { warehouses, selectedWarehouseId: "", products: [] };
   }
 
-  const stockPage = await request<Page<Stock>>(
-    `inventory?warehouseId=${encodeURIComponent(selectedWarehouseId)}&page=1&pageSize=100`,
+  const visibleWarehouses = selectedWarehouseId
+    ? warehouses.filter((warehouse) => warehouse.id === selectedWarehouseId)
+    : warehouses;
+  const stockPages = await Promise.all(
+    visibleWarehouses.map((warehouse) => inventoryForWarehouse(warehouse.id)),
   );
-  const stockBySku = new Map(
-    stockPage.data.map((stock) => [stock.skuId, stock]),
+  const stocks = stockPages.flat();
+  const stockByWarehouseAndSku = new Map(
+    stocks.map((stock) => [`${stock.warehouseId}:${stock.skuId}`, stock]),
   );
 
   const products = await Promise.all(
@@ -159,18 +162,50 @@ export async function storefrontCatalog(
             const prices = await request<Price[]>(`skus/${sku.id}/prices`);
             const price = currentPrice(prices);
             if (!price) return null;
-            return {
-              id: sku.id,
-              code: sku.code,
-              name: sku.name,
-              attributes: sku.attributes,
-              price: Number(price.amount),
-              currency: price.currency,
-              available: Math.max(stockBySku.get(sku.id)?.available ?? 0, 0),
-            };
+            const warehouseSkus = visibleWarehouses
+              .map((warehouse) => {
+                const stock = stockByWarehouseAndSku.get(
+                  `${warehouse.id}:${sku.id}`,
+                );
+                if (!selectedWarehouseId && !stock) return null;
+                return {
+                  id: sku.id,
+                  warehouseId: warehouse.id,
+                  warehouseName: warehouse.name,
+                  code: sku.code,
+                  name: sku.name,
+                  attributes: sku.attributes,
+                  price: Number(price.amount),
+                  currency: price.currency,
+                  available: Math.max(stock?.available ?? 0, 0),
+                };
+              })
+              .filter((item) => item !== null);
+            if (
+              !selectedWarehouseId &&
+              warehouseSkus.length === 0 &&
+              visibleWarehouses[0]
+            ) {
+              return [
+                {
+                  id: sku.id,
+                  warehouseId: visibleWarehouses[0].id,
+                  warehouseName: visibleWarehouses[0].name,
+                  code: sku.code,
+                  name: sku.name,
+                  attributes: sku.attributes,
+                  price: Number(price.amount),
+                  currency: price.currency,
+                  available: 0,
+                },
+              ];
+            }
+            return warehouseSkus;
           }),
         )
-      ).filter((sku) => sku !== null);
+      )
+        .filter((items) => items !== null)
+        .flat();
       if (!skus.length) return null;
 
       const primaryImage =
@@ -204,6 +239,22 @@ export async function storefrontCatalog(
     selectedWarehouseId,
     products: products.filter((product) => product !== null),
   };
+}
+
+async function inventoryForWarehouse(warehouseId: string): Promise<Stock[]> {
+  const path = `inventory?warehouseId=${encodeURIComponent(warehouseId)}&pageSize=100`;
+  const firstPage = await request<Page<Stock>>(`${path}&page=1`);
+  if (firstPage.pagination.totalPages <= 1) return firstPage.data;
+  const remainingPages = await Promise.all(
+    Array.from(
+      { length: firstPage.pagination.totalPages - 1 },
+      (_, index) => request<Page<Stock>>(`${path}&page=${index + 2}`),
+    ),
+  );
+  return [
+    ...firstPage.data,
+    ...remainingPages.flatMap((page) => page.data),
+  ];
 }
 
 function currentPrice(prices: Price[]): Price | undefined {

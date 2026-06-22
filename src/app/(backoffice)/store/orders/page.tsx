@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { apiFetch } from "@/lib/api-client";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
 import type { Order, Page } from "@/types/api";
@@ -29,7 +30,23 @@ export default function StoreOrdersPage() {
       </div>
 
       {orders.isLoading && (
-        <div className="h-52 animate-pulse rounded-2xl bg-slate-200" />
+        <div className="grid gap-4" role="status" aria-label="กำลังโหลดคำสั่งซื้อ">
+          {[0, 1, 2].map((item) => (
+            <Card key={item}>
+              <CardContent className="flex items-center gap-4 p-5">
+                <Skeleton className="size-12 shrink-0 rounded-xl" />
+                <div className="flex-1">
+                  <Skeleton className="h-5 w-48" />
+                  <Skeleton className="mt-3 h-4 w-36" />
+                </div>
+                <div className="hidden sm:block">
+                  <Skeleton className="h-6 w-28" />
+                  <Skeleton className="mt-3 h-8 w-24" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       )}
       {orders.isError && (
         <Card className="border-red-200 bg-red-50">
@@ -52,7 +69,7 @@ export default function StoreOrdersPage() {
           </CardContent>
         </Card>
       )}
-      <div className="grid gap-4">
+      {!orders.isLoading && <div className="grid gap-4">
         {orders.data?.data.map((order) => {
           const payment = order.payments.at(-1);
           return (
@@ -89,7 +106,7 @@ export default function StoreOrdersPage() {
             </Card>
           );
         })}
-      </div>
+      </div>}
     </>
   );
 }

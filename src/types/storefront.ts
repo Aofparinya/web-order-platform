@@ -8,6 +8,8 @@ import type {
 
 export interface StorefrontSku {
   id: string;
+  warehouseId: string;
+  warehouseName: string;
   code: string;
   name: string;
   attributes: Record<string, unknown>;

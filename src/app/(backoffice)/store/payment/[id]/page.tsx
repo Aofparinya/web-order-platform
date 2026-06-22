@@ -21,6 +21,7 @@ import { FormEvent, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { apiFetch } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/utils";
 import type {
@@ -43,11 +44,7 @@ export default function StorePaymentPage() {
   });
 
   if (checkout.isLoading) {
-    return (
-      <div className="grid min-h-[55vh] place-items-center text-slate-500">
-        <LoaderCircle className="size-8 animate-spin" />
-      </div>
-    );
+    return <PaymentPageSkeleton />;
   }
   if (checkout.isError || !checkout.data) {
     return (
@@ -212,7 +209,17 @@ function StripePaymentForm({ paymentId }: { paymentId: string }) {
   }
 
   if (checkoutState.type === "loading") {
-    return <div className="h-48 animate-pulse rounded-xl bg-slate-100" />;
+    return (
+      <div className="space-y-4" role="status" aria-label="กำลังโหลดแบบฟอร์มชำระเงิน">
+        <Skeleton className="h-11 w-full" />
+        <div className="grid grid-cols-2 gap-3">
+          <Skeleton className="h-11 w-full" />
+          <Skeleton className="h-11 w-full" />
+        </div>
+        <Skeleton className="h-11 w-full" />
+        <Skeleton className="h-12 w-full" />
+      </div>
+    );
   }
   if (checkoutState.type === "error") {
     return (
@@ -256,6 +263,56 @@ function StripePaymentForm({ paymentId }: { paymentId: string }) {
         )}
       </Button>
     </form>
+  );
+}
+
+function PaymentPageSkeleton() {
+  return (
+    <div
+      className="grid gap-6 lg:grid-cols-[1fr_420px]"
+      role="status"
+      aria-label="กำลังโหลดหน้าชำระเงิน"
+    >
+      <Card className="overflow-hidden">
+        <div className="bg-slate-950 px-6 py-5">
+          <div className="flex items-center gap-3">
+            <Skeleton className="size-11 rounded-2xl bg-slate-700" />
+            <div>
+              <Skeleton className="h-6 w-52 bg-slate-700" />
+              <Skeleton className="mt-2 h-4 w-36 bg-slate-700" />
+            </div>
+          </div>
+        </div>
+        <CardContent className="space-y-4 p-6">
+          <Skeleton className="h-11 w-full" />
+          <div className="grid grid-cols-2 gap-3">
+            <Skeleton className="h-11 w-full" />
+            <Skeleton className="h-11 w-full" />
+          </div>
+          <Skeleton className="h-11 w-full" />
+          <Skeleton className="h-12 w-full" />
+        </CardContent>
+      </Card>
+      <Card className="h-fit">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-3">
+            <Skeleton className="size-10 rounded-xl" />
+            <div className="flex-1">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="mt-2 h-5 w-40" />
+            </div>
+          </div>
+          <div className="mt-5 space-y-4 border-y py-5">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-4/5" />
+          </div>
+          <div className="mt-5 flex items-center justify-between">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-8 w-32" />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
